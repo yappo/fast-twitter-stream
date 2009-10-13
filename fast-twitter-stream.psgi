@@ -4,7 +4,6 @@ use Coro::AnyEvent;
 use AnyEvent::Twitter::Stream;
 use Plack::Request;
 use Plack::Builder;
-use Plack::Middleware qw( Static );
 use IO::Handle::Util qw(io_from_getline);
 use Encode;
 use utf8;
@@ -47,9 +46,9 @@ my $app = sub {
 };
 
 builder {
-    enable Plack::Middleware::Static
-      path => qr{\.(?:png|jpg|gif|css|txt|js)$},
-      root => './static/';
+    enable "Plack::Middleware::Static",
+        path => qr{\.(?:png|jpg|gif|css|txt|js)$},
+            root => './static/';
     $app;
 };
 
