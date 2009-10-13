@@ -6,7 +6,6 @@ use Plack::Request;
 use Plack::Builder;
 use IO::Handle::Util qw(io_from_getline);
 use Encode;
-use utf8;
 
 my $username = $ENV{TWITTER_USERNAME};
 my $password = $ENV{TWITTER_PASSWORD};
