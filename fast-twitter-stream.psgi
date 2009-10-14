@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use Coro;
 use Coro::Channel;
 use Coro::AnyEvent;
@@ -21,7 +23,7 @@ my $app = sub {
     if ( $req->path eq '/push' ) {
         my $now = ++$count;
         $queue{$count} = Coro::Channel->new;
-        my $close = sub { $queu{$now}->shutdown; delete $queue{$now}  };
+        my $close = sub { $queue{$now}->shutdown; delete $queue{$now}  };
         $streamer ||= AnyEvent::Twitter::Stream->new(
             username => $username,
             password => $password,
