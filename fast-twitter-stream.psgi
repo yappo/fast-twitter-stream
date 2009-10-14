@@ -10,23 +10,31 @@ use Encode;
 my $username = $ENV{TWITTER_USERNAME};
 my $password = $ENV{TWITTER_PASSWORD};
 my $boundary = '|||';
+
+my $streamer;
+my %queue;
+my $count = 0;
 my $app = sub {
     my $env = shift;
     my $req = Plack::Request->new($env);
 
     if ( $req->path eq '/push' ) {
-        my $queue    = Coro::Channel->new;
-        my $streamer = AnyEvent::Twitter::Stream->new(
+        my $now = ++$count;
+        $queue{$count} = Coro::Channel->new;
+        my $close = sub { $queu{$now}->shutdown; delete $queue{$now}  };
+        $streamer ||= AnyEvent::Twitter::Stream->new(
             username => $username,
             password => $password,
             method   => 'filter',
             track => 'twitter',
             on_tweet => sub {
-                $queue->put(@_);
+                $_->put(@_) for values %queue;
             },
+            on_eof   => $close,
+            on_error => $close,
         );
         my $body = io_from_getline sub {
-            my $tweet = $queue->get;
+            my $tweet = $queue{$now}->get;
             if( $tweet->{text} ){
                 return "--$boundary\nContent-Type: text/html\n" .
                     Encode::encode_utf8( $tweet->{text} );
