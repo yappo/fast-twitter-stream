@@ -23,7 +23,6 @@ my $app = sub {
     if ( $req->path eq '/push' ) {
         my $now = ++$count;
         $queue{$count} = Coro::Channel->new;
-        my $close = sub { $queue{$now}->shutdown; delete $queue{$now}  };
         $streamer ||= AnyEvent::Twitter::Stream->new(
             username => $username,
             password => $password,
@@ -32,8 +31,6 @@ my $app = sub {
             on_tweet => sub {
                 $_->put(@_) for values %queue;
             },
-            on_eof   => $close,
-            on_error => $close,
         );
         my $body = io_from_getline sub {
             my $tweet = $queue{$now}->get;
